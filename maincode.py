@@ -47,6 +47,7 @@ COLOUR_ACTIVE = pygame.Color('black')
 # text display
 font = pygame.font.Font(os.path.join('cabin sketch', 'CabinSketch-Regular.ttf'), 60)
 
+
 # small pygame functions ------------------------
 
 
@@ -68,6 +69,7 @@ def draw_text(text, font, surface, x, y):
     text_rect.topleft = (x, y)
     surface.blit(text_obj, text_rect)
 
+
 # Classes =========================================================================================
 
 
@@ -85,17 +87,21 @@ class InputBox:
         self.side_switch = False
         self.remove_t = False
 
+    # function to make box invisible
     def remove_box(self):
         self.remove = not self.remove
 
+    # function to make text invisible
     def remove_text(self):
         self.remove_t = not self.remove_text
         self.text = ''
         self.txt_surface = font.render(self.text, True, self.colour)
 
+    # function to make the text appear on the right
     def display_right(self):
         self.side_switch = not self.side_switch
 
+    # function to detect when the text box is clicked
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             # activates the box if the user clicks on the input box rect
@@ -111,10 +117,11 @@ class InputBox:
             else:
                 self.colour = COLOUR_INACTIVE
 
+        # box text input
         if event.type == pygame.KEYDOWN:
             if self.active:
                 if event.key == pygame.K_RETURN:
-                    #print(self.text)
+                    # print(self.text)
                     self.text = ''
                 elif event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
@@ -123,6 +130,7 @@ class InputBox:
                 # renders the text again upon a user inputting text
                 self.txt_surface = font.render(self.text, True, self.colour)
 
+    # resizes the box; 'sideswitch' is used if the box needs to be expanded to the left rather than to the right
     def update(self):
         # Resize the box if the text is too long.
         if self.side_switch:
@@ -133,6 +141,7 @@ class InputBox:
             width = max(self.init_width, self.txt_surface.get_width() + 10)
             self.rect.w = width
 
+    # displays the box on screen
     def draw(self, screen):
         # display the text
         if self.side_switch:
@@ -145,7 +154,7 @@ class InputBox:
             pygame.draw.rect(screen, self.colour, self.rect, 2)
 
 
-# create an input box with letter limits
+# create an input box with 'letter limits' - ie: the max amount of characters that can be inputted
 class InputBoxLimit(InputBox):
 
     def __init__(self, x, y, w, h, limit, text=''):
@@ -166,9 +175,9 @@ class InputBoxLimit(InputBox):
 
         if event.type == pygame.KEYDOWN:
             if self.active:
-                #print(len(self.text))
+                # print(len(self.text))
                 if event.key == pygame.K_RETURN:
-                    #print(self.text)
+                    # print(self.text)
                     self.text = ''
                 elif event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
@@ -234,12 +243,12 @@ class TextBox(InputBox):
                 lines = file.readlines()
             with open("planetname.txt", "w") as file:
                 for line in lines:
-                    print(line.strip("\n"),self.text)
+                    print(line.strip("\n"), self.text)
                     if line.strip("\n") != self.text:
                         file.write(line)
 
-            #print(self.data)
-            #print(self.data[self.json_number])
+            # print(self.data)
+            # print(self.data[self.json_number])
             self.data.pop(self.json_number)
 
             with open("planets.json", "w") as write_file:
@@ -270,7 +279,7 @@ class Planet:
         self.friction = self.gravity / 9.8
 
 
-# use inheritance to change the way g is derived on gaseous
+# use inheritance to change the way g is derived on gaseous planets
 class GasGiant(Planet):
     def __init__(self, PlanetMass, PlanetRadius):
         Planet.__init__(self, PlanetMass, PlanetRadius)
@@ -281,14 +290,14 @@ class GasGiant(Planet):
 
 
 # sorts and searches ==============================================================================
-def mergesort(array, left_index, right_index):   #quicksort?
+def mergesort(array, left_index, right_index):  # quicksort?
     if left_index >= right_index:
         return
 
     middle = (left_index + right_index) // 2
     mergesort(array, left_index, middle)
     mergesort(array, middle + 1, right_index)
-    merge(array, left_index, right_index, middle) #quicksort?
+    merge(array, left_index, right_index, middle)  # quicksort?
 
 
 def merge(array, left_index, right_index, middle):
@@ -347,10 +356,11 @@ def linearsearch(array, target):
             return i
     return -1
 
+
 # Menus ===========================================================================================
 
 
-def menu_inputs(event,clicking):
+def menu_inputs(event, clicking):
     if event.type == pygame.QUIT:
         pygame.quit()
         sys.exit()
@@ -378,6 +388,7 @@ def render_message(text1, text2, width1, height1, width2, height2):
 
 # main menu function
 def main_menu():
+    global main_bg
     while True:
         clock = pygame.time.Clock()
         screen.fill(BLACK)
@@ -391,6 +402,7 @@ def main_menu():
         if 255 < mx < 645:
 
             if 185 < my < 317 and clicking:
+                main_bg = pygame.image.load(os.path.join('Assets', 'earth.png')).convert()
                 mainloop()
 
             if 340 < my < 400 and clicking:
@@ -526,7 +538,7 @@ def new_planet():
             if 73 < mx < 399 and clicking:
                 # exception handling
                 try:
-                    if len(planet_name.text) > 2:
+                    if 2 < len(planet_name.text) > 16:
                         temp_planet = Planet(float(mass.text) * (10 ** int(float(mass_exp.text))),
                                              float(radius.text) * (10 ** int(float(radius_exp.text))))
                         no_error = True
@@ -572,7 +584,6 @@ def new_planet():
                     box.remove_box()
                 box_loop += 1
 
-
             if errorType == 1:
                 render_message('Mass must be a', 'Float Value', 110, 100, 200, 180)
 
@@ -586,7 +597,7 @@ def new_planet():
                 render_message('Radius\' exponent', 'must be an Integer', 80, 100, 40, 180)
 
             if errorType == 5:
-                render_message('Your name must be', '>2 symbols long', 20, 100, 70, 180)
+                render_message('Your name must be', '3-16 symbols long', 20, 100, 70, 180)
 
             if clicking:
                 error_exists = False
@@ -625,10 +636,8 @@ def new_planet():
 
 # load planet
 def load_planet():
-
     delete_mode = False
     text_boxes = []
-
     data = []
 
     with open("planets.json") as read_file:
@@ -653,7 +662,6 @@ def load_planet():
         sorted_names_placement.append(int(place))
         i += 1
 
-
     i = 1
     for name in stripped_sorted_names:
 
@@ -664,7 +672,8 @@ def load_planet():
         if i % 3 == 0:
             x = 600
 
-        text_boxes.append(TextBox(x, ((i - 1) // 3) * 60, 300, 60, text=f'{name}', data=data, place=sorted_names_placement[i-1]))
+        text_boxes.append(
+            TextBox(x, ((i - 1) // 3) * 60, 300, 60, text=f'{name}', data=data, place=sorted_names_placement[i - 1]))
 
         i += 1
 
@@ -690,8 +699,7 @@ def load_planet():
                     if box.rect.collidepoint(event.pos):
                         del box
                         text_boxes.pop(i)
-
-
+                        load_planet()
 
                 i += 1
 
@@ -736,6 +744,7 @@ def mainloop(*movement_settings, colour=BLACK):
     acceleration = 0.1
     topspeed = 17
     friction = 1
+    cap = True
 
     # loops program window running - ensures it won't close
     run = True
@@ -748,7 +757,10 @@ def mainloop(*movement_settings, colour=BLACK):
     slow_down = False
     was_left = False
     was_right = False
-
+    jump_right = False
+    jump_left = False
+    directional_jump = False
+    direction_loops = 0
     # gravity
     gravity = 0
     gravitational_field_strength = 9.8
@@ -799,7 +811,7 @@ def mainloop(*movement_settings, colour=BLACK):
                 if event.key == pygame.K_d or event.key == pygame.K_a:
                     inputting_dora = True
 
-                #reset button - grounds character
+                # reset button - grounds character
                 if event.key == pygame.K_r:
                     character_rect.bottom = 382
                     in_air = False
@@ -820,17 +832,57 @@ def mainloop(*movement_settings, colour=BLACK):
             # keyboard inputs
             if in_air is False:
                 if event.type == pygame.KEYDOWN:
+
                     if event.key == pygame.K_d:
                         moving_right = True
                         slow_down = False
                         speed = 3
+
                     if event.key == pygame.K_a:
                         moving_left = True
                         slow_down = False
                         speed = 3
+
+                    if event.key == pygame.K_e:
+                        if not moving_left or speed == 0:
+                            moving_right = True
+                            moving_left = False
+                            speed += 5
+                            gravity = -16
+                            in_air = True
+                        if moving_left and speed > 5:
+                            moving_right = False
+                            moving_left = True
+                            speed -= 5
+                            gravity = -16
+                            in_air = True
+                        else:
+                            event.key = pygame.K_q
+
+
+                        # jump strength
+
+                    if event.key == pygame.K_q:
+                        if not moving_right:
+                            moving_right = False
+                            moving_left = True
+                            speed += 5
+                            gravity = -16
+                            in_air = True
+                        if moving_right and speed > 5:
+                            moving_right = True
+                            moving_left = False
+                            speed -= 5
+                            gravity = -16
+                            in_air = True
+                        else:
+                            event.key = pygame.K_e
+
                     if event.key == pygame.K_SPACE:
                         in_air = True
+                        # jump strength
                         gravity = -20
+
                     # debugging tools -------------------------------------------------------------
                     if event.key == pygame.K_1:
                         topspeed += 1
@@ -846,7 +898,7 @@ def mainloop(*movement_settings, colour=BLACK):
                         print(f'Gravity down, GFS is at: {gravitational_field_strength}')
 
                 if event.type == pygame.KEYUP:
-                    if event.key == pygame.K_a or event.key == pygame.K_d:
+                    if event.key == pygame.K_a or event.key == pygame.K_d or event.key == pygame.K_e or event.key == pygame.K_q:
                         moving_right = False
                         moving_left = False
                         if in_air is False:
@@ -858,12 +910,15 @@ def mainloop(*movement_settings, colour=BLACK):
                         moving_right = True
                         slow_down = False
                         speed = 3
+
                     if event.button == 13:
                         moving_left = True
                         slow_down = False
                         speed = 3
+
                     if event.button == 2 or event.button == 3:
                         in_air = True
+                        # jump strength
                         gravity = -20
 
                 if event.type == pygame.JOYBUTTONUP:
@@ -893,21 +948,23 @@ def mainloop(*movement_settings, colour=BLACK):
             trunc_it = 0
 
         # actions -----------------------------------------------------------#
-        if moving_left is True and moving_right is True:
+        if moving_left and moving_right:
             moving_left = False
             moving_right = False
 
-        if in_air is True:
+        if direction_loops > 0:
+            moving_left = False
+            moving_right = True
+            direction_loops -= 1
+
+        if in_air:
             gravity += gravitational_field_strength * 0.164 * dt
             character_rect.y += gravity * dt
             if moving_right is True:
                 character_rect.x += speed * dt
-                # was_right = True
-                # was_left = False
+
             if moving_left is True:
                 character_rect.x -= speed * dt
-                # was_right = False
-                # was_left = True
 
         if in_air is False:
             if moving_right is True:
@@ -926,7 +983,8 @@ def mainloop(*movement_settings, colour=BLACK):
                 slow_down = True
 
         if speed >= topspeed:
-            speed = topspeed
+            if cap:
+                speed = topspeed
 
         if was_right is True:
             moving_left = False

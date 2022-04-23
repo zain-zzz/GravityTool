@@ -1,5 +1,5 @@
 write about derivation of g=-GM/r^2
-write about gas giants,  'It is estimated that the core is 30–50% of the planet's radius' wikipedia
+write about gas giants,  'It is estimated that the core is 30–50% of the planet's radius' - wikipedia
 9.5552x10^25(core-mass)~5.245% of mass 27964400m(core-radius)>~40% of radius
 credit stack overflow for text input
 credit stack abuse for merge sort
