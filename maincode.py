@@ -966,6 +966,18 @@ def mainloop(*movement_settings, colour=BLACK):
             if moving_left is True:
                 character_rect.x -= speed * dt
 
+        if not in_air:
+            if moving_right is True:
+                character_rect.left += speed * dt
+                speed += acceleration
+                was_right = True
+                was_left = False
+
+            if moving_left is True:
+                character_rect.left -= speed * dt
+                speed += acceleration
+                was_right = False
+                was_left = True
 
             if moving_left is False and moving_right is False:
                 slow_down = True
