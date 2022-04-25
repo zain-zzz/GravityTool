@@ -1192,7 +1192,6 @@ def testloop(*movement_settings, colour=BLACK):
         #     if moving_left is False and moving_right is False:
         #         slow_down = True
 
-
         if moving_right is True:
             velocity[0] += speed
             speed += acceleration
