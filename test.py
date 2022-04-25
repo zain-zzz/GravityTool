@@ -10,7 +10,7 @@ import json
 
 # window size
 pygame.init()
-WIDTH, HEIGHT = 900, 500
+WINDOW_SIZE = WIDTH, HEIGHT = 900, 500
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("program")
 
@@ -46,6 +46,9 @@ COLOUR_ACTIVE = pygame.Color('black')
 
 # text display
 font = pygame.font.Font(os.path.join('cabin sketch', 'CabinSketch-Regular.ttf'), 60)
+
+
+
 
 
 # small pygame functions ------------------------
@@ -843,14 +846,14 @@ def mainloop(*movement_settings, colour=BLACK):
                         slow_down = False
                         speed = 3
 
-                    if event.key == pygame.K_e and moving_right:
+                    if event.key == pygame.K_e:
                         if not moving_left or speed == 0:
                             moving_right = True
                             moving_left = False
                             speed += 5
                             gravity = -16
                             in_air = True
-                        elif moving_left and speed > 5:
+                        if moving_left and speed > 5:
                             moving_right = False
                             moving_left = True
                             speed -= 5
@@ -862,14 +865,14 @@ def mainloop(*movement_settings, colour=BLACK):
 
                         # jump strength
 
-                    if event.key == pygame.K_q and moving_left:
+                    if event.key == pygame.K_q:
                         if not moving_right:
                             moving_right = False
                             moving_left = True
                             speed += 5
                             gravity = -16
                             in_air = True
-                        elif moving_right and speed > 5:
+                        if moving_right and speed > 5:
                             moving_right = True
                             moving_left = False
                             speed -= 5
@@ -952,6 +955,11 @@ def mainloop(*movement_settings, colour=BLACK):
             moving_left = False
             moving_right = False
 
+        if direction_loops > 0:
+            moving_left = False
+            moving_right = True
+            direction_loops -= 1
+
         if in_air:
             gravity += gravitational_field_strength * 0.164 * dt
             character_rect.y += gravity * dt
@@ -1005,6 +1013,307 @@ def mainloop(*movement_settings, colour=BLACK):
     pygame.quit()
 
 
+from pygame.locals import *
+
+grass_image = pygame.image.load(os.path.join('Assets', 'grass.png'))
+
+#character_sprite = pygame.transform.scale(character_sprite, (50,50))
+
+dirt_image = pygame.image.load(os.path.join('Assets', 'dirt.png'))
+
+#dirt_image = pygame.transform.scale(dirt_image, (32, 32))
+#grass_image = pygame.transform.scale(grass_image, (32, 32))
+dirt_image = pygame.transform.scale(dirt_image, (68, 68))
+grass_image = pygame.transform.scale(grass_image, (68, 68))
+
+TILE_RES = grass_image.get_width()
+
+#keep at 450,250 for now
+display = pygame.Surface((1920, 1080))
+
+
+game_map = [['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
+            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
+            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
+            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
+            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
+            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
+            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
+            ['0','0','0','0','0','0','0','0','0','0','2','2','2','2','2','2','2','2','2','0','0','0','0','0','0','0','0','0','0'],
+            ['0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0'],
+            ['2','2','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','0','2','2'],
+            ['1','1','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','2','1','1'],
+            ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'],
+            ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'],
+            ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'],
+            ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1'],
+            ['1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1','1']]
+
+# player rect, list of tiles that aren't the ground
+def collision_test(rect, tiles):
+    # keeps track of all collisions
+    hit_list = []
+    for tile in tiles:
+        # if the rect collides with the tile
+        if rect.colliderect(tile):
+            # adds to list
+            hit_list.append(tile)
+    # returns list of collisions
+    return hit_list
+
+
+def move(rect, movement, tiles):
+    # dictionary of which way axis the player rect has collided with
+    collision_types = {'top': False, 'bottom': False, 'right': False, 'left': False}
+    # handling x and y axis movement separately:
+    # applies movement on the x axis
+    rect.x += movement[0]
+    # list of tiles collided with as a result of the movement
+    hit_list = collision_test(rect, tiles)
+    # for x axis:
+    for tile in hit_list:
+        # if the right side of the player rect collides with the right side of the tile:
+        if movement[0] > 0:
+            rect.right = tile.left
+            collision_types['right'] = True
+        # vice versa
+        elif movement[0] < 0:
+            rect.left = tile.right
+            collision_types['left'] = True
+
+    # applies movement on the y axis
+
+    rect.y += movement[1]
+    # list of tiles collided with as a result of the movement
+    hit_list = collision_test(rect, tiles)
+    # same as x axis but bottom with top and top with bottom
+    for tile in hit_list:
+        if movement[1] > 0:
+            rect.bottom = tile.top
+            collision_types['bottom'] = True
+        elif movement[1] < 0:
+            rect.top = tile.bottom
+            collision_types['top'] = True
+    return rect, collision_types
+
+
+def testloop(*movement_settings, colour=BLACK):
+
+    clock = pygame.time.Clock()
+    character_rect = pygame.Rect(50, 50, character_sprite.get_width(), character_sprite.get_height())
+    moving_right = False
+    moving_left = False
+    in_air = False
+    slow_down = False
+
+    # speed font
+    speed_font = pygame.font.Font(None, 50)
+
+    #
+    was_right = False
+    was_left = False
+    trunc_it = 0
+
+    # movement - values
+
+    gravity = 0
+    speed = original_speed = 5
+    acceleration = 0.1
+    air_timer = 0
+    topspeed = 20
+    friction = 0.2
+    terminal_velocity = 3
+    gravitational_field_strength = 10
+    last_velocity = 0
+
+    # imports
+    MViterations = 0
+    for x in movement_settings:
+        if MViterations == 0:
+            topspeed = x
+        if MViterations == 1:
+            acceleration = x
+        if MViterations == 2:
+            friction = x
+        if MViterations == 3:
+            gravitational_field_strength = x
+        MViterations += 1
+
+    gravitational_field_strength = 1
+    if gravitational_field_strength < 0.15:
+        gravitational_field_strength = 0.15
+
+
+    # loop
+
+    while True:
+        display.fill((146, 244, 255))
+
+        velocity = [0, 0]
+
+        # tiles
+        tile_rects = []
+        y = 0
+        for row in game_map:
+            x = 0
+            for tile in row:
+                if tile == '1':
+                    display.blit(dirt_image, (x * TILE_RES, y * TILE_RES))
+                if tile == '2':
+                    display.blit(grass_image, (x * TILE_RES, y * TILE_RES))
+                if tile != '0':
+                    tile_rects.append(pygame.Rect(x * TILE_RES, y * TILE_RES, TILE_RES, TILE_RES))
+                x += 1
+            y += 1
+
+        # if not in_air:
+        #     if moving_right:
+        #         velocity[0] += speed
+        #         speed += acceleration
+        #         was_right = True
+        #         was_left = False
+        #
+        #     if moving_left:
+        #         velocity[0] -= speed
+        #         speed += acceleration
+        #         was_right = False
+        #         was_left = True
+        #
+        # else:
+        #     gravity += gravitational_field_strength
+        #     velocity[1] += gravity
+        #
+        #     if was_right:
+        #         velocity[0] += speed
+        #
+        #     if was_left:
+        #         velocity[0] -= speed
+        #
+        #     if moving_left is False and moving_right is False:
+        #         slow_down = True
+
+
+        if moving_right is True:
+            velocity[0] += speed
+            speed += acceleration
+
+        if moving_left is True:
+            velocity[0] -= speed
+            speed += acceleration
+
+        velocity[1] += gravity
+        gravity += gravitational_field_strength
+
+
+        if speed > topspeed:
+            speed = topspeed
+
+        # if gravity > terminal_velocity:
+        #     gravity = terminal_velocity
+
+        character_rect, collision_direction = move(character_rect,velocity,tile_rects)
+
+        if collision_direction['top']:
+            gravity = 0
+
+
+
+        if velocity[1] == last_velocity:
+            # print('you\'re in the air')
+            # print(air_timer)
+            pass
+        last_velocity = velocity[1]
+
+
+        print(collision_direction)
+        if collision_direction['bottom']:
+            gravity = 0
+            air_timer = 0
+            in_air = False
+        else:
+            air_timer += 1
+            #print(f'air timer:{air_timer}')
+
+        #print(f'gravity:{gravity}')
+
+        if air_timer > 9:
+            #print(f'air timer:{air_timer}')
+            in_air = True
+            #print(in_air)
+
+        # if slow_down is True and in_air is False:
+        #     if trunc_it == 1:
+        #         speed = math.trunc(speed)
+        #         trunc_it = 0
+        #     else:
+        #         pass
+        #     if was_right:
+        #         velocity[0] += speed
+        #         print(speed)
+        #     if was_left:
+        #         velocity[0] -= speed
+        #         print(speed)
+        #     if speed > 0:
+        #         speed -= friction
+        #     if speed < 0:
+        #         speed = 0
+
+        display.blit(character_sprite, (character_rect.x, character_rect.y))
+
+        for event in pygame.event.get():
+            if in_air is False:
+                if event.type == pygame.KEYDOWN:
+
+                    if event.key == pygame.K_d:
+                        moving_right = True
+                        slow_down = False
+                        speed = original_speed
+                    if event.key == pygame.K_a:
+                        moving_left = True
+                        slow_down = False
+                        speed = original_speed
+                    if event.key == pygame.K_SPACE:
+                        in_air = True
+                        # jump strength
+                        gravity = -20
+
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_a or event.key == pygame.K_d or event.key == pygame.K_e or event.key == pygame.K_q:
+                        moving_right = False
+                        moving_left = False
+                        if in_air is False:
+                            slow_down = True
+
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == KEYDOWN:
+                if event.key == K_RIGHT:
+                    moving_right = True
+                if event.key == K_LEFT:
+                    moving_left = True
+                if event.key == K_UP:
+                    if air_timer < 6:
+                        gravity = -20
+
+            if event.type == KEYUP:
+                if event.key == K_RIGHT:
+                    moving_right = False
+                    speed = original_speed
+                if event.key == K_LEFT:
+                    moving_left = False
+                    speed = original_speed
+
+        surf = pygame.transform.scale(display,WINDOW_SIZE)
+        screen.blit(surf, (0, 0))
+        text_1 = speed_font.render(f'velocity:{math.trunc(speed)}', True, colour)
+        screen.blit(text_1, (5, 5))
+
+        pygame.display.update()
+        clock.tick(FPS)
+
+
 # import issue prevention
 if __name__ == "__main__":
-    main_menu()
+    testloop()
