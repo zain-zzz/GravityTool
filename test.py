@@ -401,6 +401,9 @@ def main_menu():
 
         for event in pygame.event.get():
             clicking = menu_inputs(event, clicking)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_c:
+                    tileloop()
 
         if 255 < mx < 645:
 
@@ -1097,7 +1100,7 @@ def move(rect, movement, tiles):
     return rect, collision_types
 
 
-def testloop(*movement_settings, colour=BLACK):
+def tileloop(*movement_settings, colour=BLACK):
 
     clock = pygame.time.Clock()
     character_rect = pygame.Rect(50, 50, character_sprite.get_width(), character_sprite.get_height())
@@ -1280,6 +1283,7 @@ def testloop(*movement_settings, colour=BLACK):
                     if event.key == pygame.K_a or event.key == pygame.K_d or event.key == pygame.K_e or event.key == pygame.K_q:
                         moving_right = False
                         moving_left = False
+                        velocity[0] = 0
                         if in_air is False:
                             slow_down = True
 
@@ -1306,7 +1310,7 @@ def testloop(*movement_settings, colour=BLACK):
 
         surf = pygame.transform.scale(display,WINDOW_SIZE)
         screen.blit(surf, (0, 0))
-        text_1 = speed_font.render(f'velocity:{math.trunc(speed)}', True, colour)
+        text_1 = speed_font.render(f'velocity:{math.trunc(velocity[0])}', True, colour)
         screen.blit(text_1, (5, 5))
 
         pygame.display.update()
@@ -1315,4 +1319,4 @@ def testloop(*movement_settings, colour=BLACK):
 
 # import issue prevention
 if __name__ == "__main__":
-    testloop()
+    main_menu()
