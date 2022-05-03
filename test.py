@@ -401,6 +401,7 @@ def main_menu():
 
         for event in pygame.event.get():
             clicking = menu_inputs(event, clicking)
+            # for tileloop()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_c:
                     tileloop()
